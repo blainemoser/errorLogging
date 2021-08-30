@@ -29,7 +29,7 @@ func Start() {
 
 func AddToQueue(event fsnotify.Event) {
 	var index int
-	if strings.Contains(event.String(), "CHMOD") {
+	if checkWrite(event) {
 		file, err := files.List.GetFile(event.Name)
 		if err != nil {
 			log.Println(err)
@@ -45,6 +45,11 @@ func AddToQueue(event fsnotify.Event) {
 		}
 		file.Watcher.Done()
 	}
+}
+
+func checkWrite(event fsnotify.Event) bool {
+	eventString := event.String()
+	return strings.Contains(eventString, "CHMOD") || strings.Contains(eventString, "WRITE")
 }
 
 func ProcessQueue() {
