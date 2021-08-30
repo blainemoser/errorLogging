@@ -85,7 +85,10 @@ func fileConfig(setting []string) error {
 func fileDetails(setting string) {
 	splitThis := strings.Split(setting, "@")
 	fileName := splitThis[0]
-	fileFilters := getFileFilters(splitThis[1])
+	var fileFilters []string
+	if len(splitThis) > 1 {
+		fileFilters = getFileFilters(splitThis[1])
+	}
 	Configs.Files[fileName] = fileFilters
 }
 
