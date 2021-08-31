@@ -16,8 +16,11 @@ If filters are specified for a file (by using the "@" symbol after the file path
 The "#" symbol after the filter string changes the formatting of messages associated with that filter. 
 
 There are three formats available:
+
 INFO (formats messages with a neutral border);
-ERROR or CRITICAL (formats messages with a red border); and, 
-DEBUG or WARNING (formats messsages with a yellow border).
+
+ERROR or CRITICAL (formats messages with a red border); and,
+
+DEBUG or WARNING (formats messages with a yellow border).
 
 
