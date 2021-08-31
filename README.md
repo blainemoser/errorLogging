@@ -1,6 +1,6 @@
 # errorLogging
 
-This is a simple service that watches specified files and POSTs updates thereto to a Slack app (or any open webhook URL).
+This is a service that watches specified files and POSTs relevant writes thereto to a Slack app's webhook.
 
 ## Download the Linux bin here:
 https://photographywesterncape.com/errorLogging
