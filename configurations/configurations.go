@@ -2,7 +2,6 @@ package configurations
 
 import (
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/blainemoser/errorLogging/utils"
@@ -19,8 +18,11 @@ type Configure struct {
 
 // Initialize initialises the configurations for this script
 func Initialize(inputs []string) error {
-	configs := parseInputs(inputs)
-	err := setConfigs(configs)
+	configs, err := parseInputs(inputs)
+	if err != nil {
+		return err
+	}
+	err = setConfigs(configs)
 	if err != nil {
 		return err
 	}
@@ -109,37 +111,43 @@ func getFileFilters(setting string) map[string]string {
 	return result
 }
 
-func parseInputs(inputs []string) map[string][]string {
+func parseInputs(inputs []string) (map[string][]string, error) {
 	args := args()
 	result := map[string][]string{}
+	var err error
 	var curIndex string
 	for i := 0; i < len(inputs); i++ {
 		v := strings.Trim(inputs[i], " ")
 		if strings.Contains(v, "=") {
 			configs := strings.Split(v, "=")
-			appendConfig(&curIndex, args, &result, configs[1], configs[0])
+			err = appendConfig(&curIndex, args, &result, configs[1], configs[0])
 		} else {
-			appendConfig(&curIndex, args, &result, v, v)
+			err = appendConfig(&curIndex, args, &result, v, v)
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
-	err := checkConfigs(result)
+	err = checkConfigs(result)
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
-	return result
+	return result, nil
 }
 
-func appendConfig(curIndex *string, args map[string]string, result *map[string][]string, value, index string) {
+func appendConfig(curIndex *string, args map[string]string, result *map[string][]string, value, index string) error {
 	removeDashes(&index)
 	if args[index] == "" {
 		if (*result)[*curIndex] == nil {
-			log.Fatalf("the %s argument does not exist", index)
+			err := fmt.Errorf("the %s argument does not exist", index)
+			return err
 		}
 		(*result)[*curIndex] = append((*result)[*curIndex], value)
 	} else {
 		*curIndex = args[index]
 		(*result)[*curIndex] = make([]string, 0)
 	}
+	return nil
 }
 
 func removeDashes(input *string) {
