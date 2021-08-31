@@ -14,7 +14,7 @@ var Configs *Configure
 // Configure holds configurations
 type Configure struct {
 	URL   string
-	Files map[string][]string
+	Files map[string]map[string]string
 }
 
 // Initialize initialises the configurations for this script
@@ -69,7 +69,7 @@ func urlConfig(setting []string) error {
 }
 
 func fileConfig(setting []string) error {
-	Configs.Files = make(map[string][]string)
+	Configs.Files = make(map[string]map[string]string)
 	for _, v := range setting {
 		if v == " " {
 			continue
@@ -85,18 +85,25 @@ func fileConfig(setting []string) error {
 func fileDetails(setting string) {
 	splitThis := strings.Split(setting, "@")
 	fileName := splitThis[0]
-	var fileFilters []string
+	var fileFilters map[string]string
 	if len(splitThis) > 1 {
 		fileFilters = getFileFilters(splitThis[1])
 	}
 	Configs.Files[fileName] = fileFilters
 }
 
-func getFileFilters(setting string) []string {
+func getFileFilters(setting string) map[string]string {
 	filters := strings.Split(setting, ",")
-	result := []string{}
+	result := map[string]string{}
+	var splitType []string
 	for _, v := range filters {
-		result = append(result, strings.Trim(v, " "))
+		if strings.Contains(v, "#") {
+			splitType = strings.Split(v, "#")
+		} else {
+			splitType[0] = v
+			splitType[1] = "INFO"
+		}
+		result[splitType[0]] = splitType[1]
 	}
 
 	return result

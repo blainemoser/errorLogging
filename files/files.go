@@ -13,7 +13,7 @@ import (
 
 type File struct {
 	Watcher *filewatcher.FileWatcher
-	Filters []string
+	Filters map[string]string
 }
 
 type FileList struct {
@@ -24,7 +24,7 @@ type FileList struct {
 
 var List *FileList
 
-func (fl *FileList) Push(name string, filters []string) error {
+func (fl *FileList) Push(name string, filters map[string]string) error {
 	watcher, err := filewatcher.Initialize(name)
 	if err != nil {
 		return err
@@ -85,8 +85,9 @@ func (f *File) Filtered(e *filewatcher.Event) bool {
 		return false
 	}
 	filtered := true
-	for _, filter := range f.Filters {
+	for filter, typeOf := range f.Filters {
 		if strings.Contains(e.GetContent(), filter) {
+			e.SetTypeOf(typeOf)
 			filtered = false
 			break
 		}
