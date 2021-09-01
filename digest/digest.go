@@ -1,13 +1,14 @@
 package digest
 
 import (
-	"log"
+	"fmt"
 	"strings"
 	"sync"
 
 	"github.com/blainemoser/errorLogging/files"
 	"github.com/blainemoser/errorLogging/filewatcher"
 	"github.com/blainemoser/errorLogging/slack"
+	"github.com/blainemoser/errorLogging/utils"
 	"github.com/fsnotify/fsnotify"
 )
 
@@ -27,13 +28,19 @@ func Start() {
 	}
 }
 
-func AddToQueue(event fsnotify.Event) {
+func AddToQueue(event fsnotify.Event) error {
+	if event.Name == "" {
+		return nil
+	}
+	err := files.List.Reset(event.Name)
+	if err != nil {
+		return err
+	}
 	var index int
 	if checkWrite(event) {
 		file, err := files.List.GetFile(event.Name)
 		if err != nil {
-			log.Println(err)
-			return
+			return err
 		}
 		file.Watcher.Start()
 		e := file.Watcher.GetEvent()
@@ -45,6 +52,7 @@ func AddToQueue(event fsnotify.Event) {
 		}
 		file.Watcher.Done()
 	}
+	return err
 }
 
 func checkWrite(event fsnotify.Event) bool {
@@ -52,19 +60,26 @@ func checkWrite(event fsnotify.Event) bool {
 	return strings.Contains(eventString, "CHMOD") || strings.Contains(eventString, "WRITE")
 }
 
-func ProcessQueue() {
+func ProcessQueue(processChan chan error) {
 	if q.processing {
+		processChan <- fmt.Errorf("process busy")
 		return
 	}
 	q.setLock(true)
+	var errs []error
 	for index, v := range q.events {
 		err := q.slack.PostToSlack(v)
 		if err != nil {
-			log.Println(err)
+			errs = append(errs, err)
 		}
 		delete(q.events, index)
 	}
 	q.setLock(false)
+	processChan <- utils.GetErrors(errs)
+}
+
+func GetEventsCount() int {
+	return len(q.events)
 }
 
 func (q *queue) setLock(running bool) {

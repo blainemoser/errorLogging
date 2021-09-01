@@ -68,6 +68,18 @@ func (fl *FileList) Walk() error {
 	return utils.GetErrors(errs)
 }
 
+func (fl *FileList) Reset(name string) error {
+	if name == "" {
+		return nil
+	}
+	_ = fl.notifier.Remove(name)
+	err := fl.notifier.Add(name)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (fl *FileList) GetFile(path string) (*File, error) {
 	fileInterface := fl.files.Get(path)
 	return fileFromInterface(fileInterface)

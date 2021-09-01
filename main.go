@@ -12,32 +12,41 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-var watcher *fsnotify.Watcher
-var err error
-
 func main() {
 	watcher := initialise()
 	defer watcher.Close()
 	done := make(chan bool)
-	go runWatch()
+	err := files.List.Walk()
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	go runWatch(watcher)
 	for range time.Tick(time.Second * 1) {
-		digest.ProcessQueue()
+		processChan := make(chan error, 1)
+		digest.ProcessQueue(processChan)
+		processError := <-processChan
+		close(processChan)
+		if processError != nil {
+			log.Println(processError.Error())
+		}
 	}
 	<-done
 }
 
-func runWatch() {
+func runWatch(watcher *fsnotify.Watcher) {
 	for {
-		err := files.List.Walk()
-		if err != nil {
-			log.Fatal(err)
-		}
 		select {
 		// watch for events
 		case event := <-watcher.Events:
-			digest.AddToQueue(event)
+			err := digest.AddToQueue(event)
+			if err != nil {
+				log.Println(err)
+			}
 		case err := <-watcher.Errors:
-			fmt.Println("ERROR", err)
+			if err != nil {
+				log.Printf("error in watcher: %s", err.Error())
+			}
 		}
 	}
 }
@@ -50,22 +59,24 @@ func initConifgs(args []string) {
 	}
 }
 
-func initFileWatcher(watcher *fsnotify.Watcher) {
-	err := files.Initialize(watcher)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(1)
-	}
+func initFileWatcher(newWatcher *fsnotify.Watcher, errChan chan error) {
+	errChan <- files.Initialize(newWatcher)
 }
 
 func initialise() *fsnotify.Watcher {
 	args := os.Args[1:]
 	initConifgs(args)
 	digest.Start()
-	watcher, err = fsnotify.NewWatcher()
+	newWatcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
 	}
-	initFileWatcher(watcher)
-	return watcher
+	errChan := make(chan error, 1)
+	initFileWatcher(newWatcher, errChan)
+	err = <-errChan
+	close(errChan)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return newWatcher
 }
