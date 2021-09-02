@@ -12,8 +12,9 @@ var Configs *Configure
 
 // Configure holds configurations
 type Configure struct {
-	URL   string
-	Files map[string]map[string]string
+	URL      string
+	Files    map[string]map[string]string
+	Suppress []string
 }
 
 // Initialize initialises the configurations for this script
@@ -44,10 +45,12 @@ func setConfigs(configs map[string][]string) error {
 
 func args() map[string]string {
 	return map[string]string{
-		"url":   "url",
-		"files": "files",
-		"u":     "url",
-		"f":     "files",
+		"url":      "url",
+		"files":    "files",
+		"suppress": "suppress",
+		"u":        "url",
+		"f":        "files",
+		"s":        "suppress",
 	}
 }
 
@@ -57,6 +60,8 @@ func setConfig(prop string, setting []string) error {
 		return urlConfig(setting)
 	case "files":
 		return fileConfig(setting)
+	case "suppress":
+		return suppressConfig(setting)
 	default:
 		return fmt.Errorf("unknown prop '%s'", prop)
 	}
@@ -81,6 +86,11 @@ func fileConfig(setting []string) error {
 	if len(Configs.Files) < 1 {
 		return fmt.Errorf("no file paths provided")
 	}
+	return nil
+}
+
+func suppressConfig(setting []string) error {
+	Configs.Suppress = setting
 	return nil
 }
 

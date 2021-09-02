@@ -20,6 +20,7 @@ type FileList struct {
 	names    []string
 	files    *hashtable.Hashtable
 	notifier *fsnotify.Watcher
+	suppress []string
 }
 
 var List *FileList
@@ -43,6 +44,7 @@ func Initialize(notifier *fsnotify.Watcher) error {
 		names:    make([]string, 0),
 		files:    hashtable.New(),
 		notifier: notifier,
+		suppress: configurations.Configs.Suppress,
 	}
 	files := configurations.Configs.Files
 	var errs []error
@@ -105,4 +107,18 @@ func (f *File) Filtered(e *filewatcher.Event) bool {
 		}
 	}
 	return filtered
+}
+
+func (f *File) Suppressed(e *filewatcher.Event) bool {
+	if len(List.suppress) < 1 {
+		return false
+	}
+	suppressed := false
+	for _, input := range List.suppress {
+		if strings.Contains(e.GetContent(), input) {
+			suppressed = true
+			break
+		}
+	}
+	return suppressed
 }

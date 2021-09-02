@@ -44,7 +44,7 @@ func AddToQueue(event fsnotify.Event) error {
 		}
 		file.Watcher.Start()
 		e := file.Watcher.GetEvent()
-		if file.Watcher.AppendedTo() && !file.Filtered(e) {
+		if file.Watcher.AppendedTo() && !file.Filtered(e) && !file.Suppressed(e) {
 			q.lock.Lock()
 			index = len(q.events) + 1
 			q.events[index] = e
