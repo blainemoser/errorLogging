@@ -8,7 +8,7 @@ https://photographywesterncape.com/errorLogging
 ## Usage
 Run the command to start a file-watcher process:
 
-`./errorLogging --url|-u https://hooks.slack.com/services/.../... --files|-f /path/to/file/one.log@ERROR#ERROR,CRITICAL#ERROR /path/to/file/two.log@INFO#INFO,DEBUG#WARNING --suppress|1-s "error that you want to suppress" "something else that you want to suppress" ...`
+`./errorLogging --url|-u https://hooks.slack.com/services/.../... --files|-f /path/to/file/one.log@ERROR#ERROR,CRITICAL#ERROR /path/to/file/two.log@INFO#INFO,DEBUG#WARNING --suppress|-s "error that you want to suppress" "something else that you want to suppress" ...`
 
 ## Filters
 If filters are specified for a file (by using the "@" symbol after the file path followed by a comma-separated list of filters), then only file writes containing those particular strings will be posted. For example, by specifying the file path with the filter "production.ERROR,production.CRITICAL" ("/path/to/file@production.ERROR,production.CRITICAL") the programme will only post writes that contain one of the strings "production.ERROR" and "production.CRITICAL".
