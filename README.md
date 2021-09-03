@@ -8,12 +8,9 @@ https://photographywesterncape.com/errorLogging
 ## Usage
 Run the following command to start a file-watcher process:
 
-#### ./errorLogging \
-#### --url https://hooks.slack.com/services/... \
-#### --files /path/to/file/one.log@ERROR#ERROR,CRITICAL#ERROR \ 
-#### /path/to/file/two.log@INFO#INFO,DEBUG#WARNING \
-#### --suppress "ignore this message" \ 
-#### "also ignore this message"
+**./errorLogging --url https://hooks.slack.com/services/... \
+--files /path/to/file/one.log@ERROR#ERROR,CRITICAL#ERROR /path/to/file/two.txt@INFO#INFO,DEBUG#WARNING \
+--suppress "ignore this message" "also ignore this message"**
 
 Arguments:
 **-u|--url**: [required] the Slack Webhook URL
