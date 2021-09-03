@@ -8,14 +8,14 @@ https://photographywesterncape.com/errorLogging
 ## Usage
 Run the following command to start a file-watcher process:
 
-**./errorLogging --url https://hooks.slack.com/services/... \\
---files /path/to/file/one.log@ERROR#ERROR,CRITICAL#ERROR /path/to/file/two.txt@INFO#INFO,DEBUG#WARNING \\
+**./errorLogging --url https://hooks.slack.com/services/... \\ \
+--files /path/to/file/one.log@ERROR#ERROR,CRITICAL#ERROR /path/to/file/two.txt@INFO#INFO,DEBUG#WARNING \\ \
 --suppress "ignore this message" "also ignore this message"**
 
 Arguments:
-**-u|--url**: [required] the Slack Webhook URL
-**-f|--files**: [at least one file path required] the file paths of the files to watch
-**-s|--suppress**: [optional] any message/s that should be ignored
+**-u|--url**: [required] the Slack Webhook URL \
+**-f|--files**: [at least one file path required] the file paths of the files to watch \
+**-s|--suppress**: [optional] any message/s that should be ignored \
 
 ## Filters
 Using the "@" symbol after file paths filters file writes. Only file writes that contain at least one of the filter-strings will be posted to Slack. Use a comma-separated list to specify multiple filters. 
