@@ -21,14 +21,14 @@ Arguments: \
 Using the "@" symbol after file paths filters file writes. Only file writes that contain at least one of the filter-strings will be posted to Slack. Use a comma-separated list to specify multiple filters. 
 
 For example, by applying the filters \ 
-**production.ERROR,production.CRITICAL** ("**--files /path/to/file@production.ERROR,production.CRITICAL**") \ 
+ **production.ERROR,production.CRITICAL** ("**--files /path/to/file@production.ERROR,production.CRITICAL**") \ 
 the programme will only post writes that contain either **production.ERROR** and/or **production.CRITICAL**.
 
 ## Formatting
 Use the "#" symbol (after filter strings) to apply formatting to Slack messages (for writes that contain the filter string). 
 
 For example specifying \ 
-**--files /path/to/file.log@production.WARNING#WARNING,production.CRITICAL#ERROR** \ 
+ **--files /path/to/file.log@production.WARNING#WARNING,production.CRITICAL#ERROR** \ 
 applies the **WARNING** format to Slack messages for writes containing the string **production.WARNING**, and the **ERROR** format for those containing **production.CRITICAL** (see below).
 
 There are three formats available:
