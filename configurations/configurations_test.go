@@ -14,6 +14,9 @@ func TestInitialize(t *testing.T) {
 		"-f",
 		"/path/to/file/one@ERROR#ERROR,CRITICAL#ERROR",
 		"/path/to/file/two@DEBUG#WARNING,INFO#INFO",
+		"-s",
+		"Suppress Message One",
+		"Suppress Message Two",
 	})
 	if err != nil {
 		t.Fatal(err)
@@ -65,6 +68,7 @@ func checkTestedConfigs() error {
 		errs = append(errs, fmt.Errorf("expected url to be %s, got %s", url, Configs.URL))
 	}
 	checkTestedFileConfigs(&errs)
+	checkTestedSuppressConfigs(&errs)
 	return utils.GetErrors(errs)
 }
 
@@ -97,5 +101,24 @@ func getExpectsFiles() map[string]map[string]string {
 			"DEBUG": "WARNING",
 			"INFO":  "INFO",
 		},
+	}
+}
+
+func getExpectedSuppressMessages() map[string]bool {
+	return map[string]bool{
+		"Suppress Message One": true,
+		"Suppress Message Two": true,
+	}
+}
+
+func checkTestedSuppressConfigs(errs *[]error) {
+	expects := getExpectedSuppressMessages()
+	for _, has := range Configs.Suppress {
+		if !expects[has] {
+			*errs = append(*errs, fmt.Errorf("expected '%s' to be in list of messages to suppress", has))
+		}
+	}
+	if len(Configs.Suppress) != len(expects) {
+		*errs = append(*errs, fmt.Errorf("unexpected number of items in list of messages to suppress: want %d, got %d", len(expects), len(Configs.Suppress)))
 	}
 }

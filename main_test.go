@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"os"
 	"testing"
 	"time"
@@ -59,23 +60,35 @@ func TestProg(t *testing.T) {
 		panic(err)
 	}
 	go runWatch(watcher)
-	writeChan := make(chan error, 1)
-	writeToFile(writeChan)
-	err = <-writeChan
-	if err != nil {
-		panic(err)
-	}
-	closeChan := make(chan error, 1)
-	digest.ProcessQueue(closeChan)
-	err = <-closeChan
-	if err != nil {
-		panic(err)
-	}
-	close(closeChan)
+	startFileWrite()
+	processDigest()
 	wChan := make(chan error, 1)
 	closeWatcher(wChan, watcher)
 	err = <-wChan
 	close(wChan)
+	if err != nil {
+		log.Println(err)
+	}
+}
+
+func startFileWrite() {
+	writeChan := make(chan error, 1)
+	writeToFile(writeChan)
+	err := <-writeChan
+	close(writeChan)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func processDigest() {
+	closeChan := make(chan error, 1)
+	digest.ProcessQueue(closeChan)
+	err := <-closeChan
+	close(closeChan)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func waitForWrite(written chan error) {
