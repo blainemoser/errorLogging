@@ -37,6 +37,6 @@ There are three formats available:
 **ERROR** or **CRITICAL** formats messages with a red border; and, \
 **DEBUG** or **WARNING** formats messages with a yellow border.
 
-#### Suppress Messages
+## Suppress Messages
 Use the suppress (--suppress|-s) option to ignore certain messages. File writes containing one or more of the specified strings will not be posted.
 
