@@ -1,7 +1,6 @@
 package digest
 
 import (
-	"fmt"
 	"strings"
 	"sync"
 
@@ -16,15 +15,19 @@ type queue struct {
 	events     map[int]*filewatcher.Event
 	lock       sync.RWMutex
 	processing bool
+	Ready      bool
 	slack      *slack.Slack
+	wakeUp     chan bool
 }
 
-var q *queue
+var Q *queue
 
 func Start() {
-	q = &queue{
+	Q = &queue{
 		events: make(map[int]*filewatcher.Event),
 		slack:  slack.NewSlack(),
+		Ready:  false,
+		wakeUp: make(chan bool, 1),
 	}
 }
 
@@ -45,14 +48,23 @@ func AddToQueue(event fsnotify.Event) error {
 		file.Watcher.Start()
 		e := file.Watcher.GetEvent()
 		if file.Watcher.AppendedTo() && !file.Filtered(e) && !file.Suppressed(e) {
-			q.lock.Lock()
-			index = len(q.events) + 1
-			q.events[index] = e
-			q.lock.Unlock()
+			Q.lock.Lock()
+			index = len(Q.events) + 1
+			Q.events[index] = e
+			Q.lock.Unlock()
 		}
 		file.Watcher.Done()
 	}
-	return err
+
+	if err != nil {
+		return err
+	}
+	// This will trigger the ready state if the process was asleep
+	// at the time of this addition
+	if !Q.processing && len(Q.events) > 0 {
+		Q.wakeUp <- true
+	}
+	return nil
 }
 
 func checkWrite(event fsnotify.Event) bool {
@@ -60,34 +72,36 @@ func checkWrite(event fsnotify.Event) bool {
 	return strings.Contains(eventString, "CHMOD") || strings.Contains(eventString, "WRITE")
 }
 
-func ProcessQueue(processChan chan error) {
-	if q.processing {
-		processChan <- fmt.Errorf("process busy")
-		return
+func ProcessQueue(errChan chan error, cond *sync.Cond) {
+	if !Q.processing {
+		<-Q.wakeUp
 	}
-	q.setLock(true)
+	Q.Ready = false
+	Q.setLock(true)
 	var errs []error
-	for index, v := range q.events {
-		err := q.slack.PostToSlack(v)
+	for index, v := range Q.events {
+		err := Q.slack.PostToSlack(v)
 		if err != nil {
 			errs = append(errs, err)
 		}
-		delete(q.events, index)
+		delete(Q.events, index)
 	}
-	q.setLock(false)
-	processChan <- utils.GetErrors(errs)
+	Q.setLock(false)
+	Q.Ready = true
+	cond.Signal()
+	errChan <- utils.GetErrors(errs)
 }
 
 func GetEventsCount() int {
-	return len(q.events)
+	return len(Q.events)
 }
 
 func (q *queue) setLock(running bool) {
 	if running {
-		q.processing = true
-		q.lock.RLock()
+		Q.lock.RLock()
+		Q.processing = true
 		return
 	}
-	q.lock.RUnlock()
-	q.processing = false
+	Q.lock.RUnlock()
+	Q.processing = false
 }

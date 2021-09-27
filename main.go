@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"time"
+	"sync"
 
 	"github.com/blainemoser/errorLogging/configurations"
 	"github.com/blainemoser/errorLogging/digest"
@@ -15,26 +15,18 @@ import (
 func main() {
 	watcher := initialise()
 	defer watcher.Close()
-	done := make(chan bool)
 	err := files.List.Walk()
 	if err != nil {
 		log.Fatal(err)
 		return
 	}
-	go runWatch(watcher)
-	for range time.Tick(time.Second * 1) {
-		processChan := make(chan error, 1)
-		digest.ProcessQueue(processChan)
-		processError := <-processChan
-		close(processChan)
-		if processError != nil {
-			log.Println(processError.Error())
-		}
+	go runFileWatcher(watcher)
+	for {
+		runQueueWatcher()
 	}
-	<-done
 }
 
-func runWatch(watcher *fsnotify.Watcher) {
+func runFileWatcher(watcher *fsnotify.Watcher) {
 	for {
 		select {
 		// watch for events
@@ -48,6 +40,21 @@ func runWatch(watcher *fsnotify.Watcher) {
 				log.Printf("error in watcher: %s", err.Error())
 			}
 		}
+	}
+}
+
+func runQueueWatcher() {
+	errChan := make(chan error, 1)
+	cond := sync.NewCond(&sync.RWMutex{})
+	go digest.ProcessQueue(errChan, cond)
+	cond.L.Lock()
+	for !digest.Q.Ready {
+		cond.Wait()
+	}
+	cond.L.Unlock()
+	err := <-errChan
+	if err != nil {
+		log.Println(err.Error())
 	}
 }
 

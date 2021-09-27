@@ -14,6 +14,8 @@ import (
 
 var Testing bool
 
+var TestingPosts int
+
 type Slack struct {
 	url string
 }
@@ -70,9 +72,10 @@ func checkPretext(attachment map[string]interface{}, errs *[]error) {
 	if err != nil {
 		*errs = append(*errs, err)
 	} else {
-		expected := "File: testLog.log"
-		if pretext != expected {
-			*errs = append(*errs, fmt.Errorf("expected pretext to be '%s', got '%s", expected, pretext))
+		expected := "File: testLogOne.log"
+		expectedTwo := "File: testLogTwo.log"
+		if pretext != expected && pretext != expectedTwo {
+			*errs = append(*errs, fmt.Errorf("expected pretext to be '%s' or '%s', got '%s", expected, expectedTwo, pretext))
 		}
 	}
 }
@@ -82,6 +85,7 @@ func checkFields(extract *jsonextract.JSONExtract, attachment map[string]interfa
 	if err != nil {
 		*errs = append(*errs, err)
 	} else {
+		TestingPosts += len(fields)
 		for i := range fields {
 			f, err := extract.Extract("attachments/[0]/fields/[" + strconv.Itoa(i) + "]/value")
 			if err != nil {
