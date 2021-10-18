@@ -2,7 +2,6 @@ package filewatcher
 
 import (
 	"encoding/json"
-	"io/fs"
 	"io/ioutil"
 	"log"
 	"os"
@@ -17,7 +16,7 @@ type FileWatcher struct {
 	length int64
 	diff   int64
 	file   *os.File
-	stat   fs.FileInfo
+	stat   os.FileInfo
 }
 
 type Event struct {
