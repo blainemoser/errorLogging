@@ -151,7 +151,9 @@ func (e *Event) setColor(data *string) {
 }
 
 func (e *Event) setPretext(data *string) {
-	*data = strings.Replace(*data, "{{pretext}}", "File: "+e.file, 1)
+	name := e.file
+	name = strings.ReplaceAll(name, "\\", "\\\\")
+	*data = strings.Replace(*data, "{{pretext}}", "File: "+name, 1)
 }
 
 func (e *Event) setFooter(data *string) {

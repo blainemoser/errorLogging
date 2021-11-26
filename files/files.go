@@ -34,6 +34,7 @@ func (fl *FileList) Push(name string, filters map[string]string) error {
 		Watcher: watcher,
 		Filters: filters,
 	}
+	utils.OSFileName(&name)
 	fl.names = append(fl.names, name)
 	fl.files.Put(name, file)
 	return nil

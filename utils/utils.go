@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"runtime"
 	"strings"
 )
 
@@ -38,4 +39,10 @@ func ArrayInterface(input map[string]interface{}, key string) ([]interface{}, er
 		return shouldBe, nil
 	}
 	return nil, fmt.Errorf("input is not an array")
+}
+
+func OSFileName(name *string) {
+	if runtime.GOOS == "windows" {
+		*name = strings.ReplaceAll(*name, "/", "\\")
+	}
 }
